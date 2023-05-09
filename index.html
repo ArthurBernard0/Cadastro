@@ -7,47 +7,80 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="Api" href="app.js">
+    <link rel="manifest" href="manifest.json">
+    <script src="app.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#1e88e5">
-
   </head>
   <body>
-    <form>
-        <form>
-            <label for="nome">Nome:</label>
-            <input type="text" id="nome" name="nome" required>
-          
-            <label for="email">E-mail:</label>
-            <input type="email" id="email" name="email" required>
-          
-            <label for="telefone">Telefone:</label>
-            <input type="tel" id="telefone" name="telefone" required>
-          
-            <button type="submit">Enviar</button>
-          </form>      
+    <form id="cadastro-form">
+      <label for="nome">Nome:</label>
+      <input type="text" id="nome" name="name" required>
+    
+      <label for="email">E-mail:</label>
+      <input type="email" id="email" name="email" required>
+    
+      <label for="telefone">Telefone:</label>
+      <input type="tel" id="telefone" name="phone_number" required>
+    
+      <button type="submit">Enviar</button>
     </form>
-<br>
-    <h1>Lista de Usuarios:</h1>
-  </body>
+    
+    <h1>Lista de Usuários:</h1>
+    <ul class="lista-usuarios"></ul>
 
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-          .then((registration) => console.log('Service Worker registrado!', registration))
-          .catch((error) => console.error('Erro ao registrar Service Worker:', error));
+    <script>
+      window.addEventListener('load', function() {
+        fetch('/')
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              let listaUsuarios = document.querySelector('.lista-usuarios');
+              for (let user of data.users) {
+                let novoUsuario = document.createElement('li');
+                novoUsuario.innerText = `${user.name} - ${user.email} - ${user.phone_number}`;
+                listaUsuarios.appendChild(novoUsuario);
+              }
+            } else {
+              alert(data.mssg);
+            }
+          })
+          .catch(error => {
+            console.log(error);
+            alert('Erro ao carregar lista de usuários');
+          });
       });
-    }
-  </script>
 
-  <script>
+      document.querySelector('#cadastro-form').addEventListener('submit', function (event) {
+        event.preventDefault(); // impede que o formulário seja enviado normalmente
 
-    console.log("Viewport size: " + document.documentElement.clientWidth);
-console.log("Window size: " + window.innerWidth);
+        // pega os dados do formulário
+        let formData = new FormData(document.querySelector('#cadastro-form'));
 
-  </script>
+        // envia uma solicitação POST com os dados do formulário
+        fetch('http://localhost:3000/user/add', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            // adiciona o usuário à lista de usuários
+            let listaUsuarios = document.querySelector('.lista-usuarios');
+            let novoUsuario = document.createElement('li');
+            novoUsuario.innerText = `${formData.get('name')} - ${formData.get('email')} - ${formData.get('phone_number')}`;
+            listaUsuarios.appendChild(novoUsuario);
 
-  
+            // limpa o formulário
+            document.querySelector('#cadastro-form').reset();
+          } else {
+            alert(data.mssg);
+          }
+        }).catch(error => {
+          console.error(error);
+          alert('Erro ao enviar dados');
+        });
+      });
+    </script>
+  </body>
 </html>

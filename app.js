@@ -1,25 +1,23 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const app = express();
+var express = require('express'),
+path = require('path'),
+bodyParser = require('body-parser'),
+cors = require('cors'),
+mongoose = require('mongoose');
 
-app.use(bodyParser.urlencoded({ extended: true }));
+mongoose.Promise = global.Promise;
+mongoose.connect('mongodb+srv://arthurtromer93:cabrunco4000@cluster0.ojvpssk.mongodb.net/', { useNewUrlParser: true }).then(
+  () => {console.log('Database is connected') },
+  err => { console.log('Can not connect to the database'+ err)});
+
+const userRoute = require('./routes/user.route');
+
+var app = express();
 app.use(bodyParser.json());
-app.use(express.static('public'));
+app.use(cors());
 
-const PORT = process.env.PORT || 3000;
+app.use('/user', userRoute);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
 
-const data = [];
-
-app.post('/cadastro', (req, res) => {
-  const { nome, email, telefone } = req.body;
-  data.push({ nome, email, telefone });
-  res.send('Parabens Otario');
-});
-
-app.get('/dados', (req, res) => {
-  res.send(data);
+app.listen(3000,function(){
+    console.log('Listening on port 3000!');
 });
